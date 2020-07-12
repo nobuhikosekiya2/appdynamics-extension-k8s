@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: machine-agent-extension
+  namespace: appdynamics
+spec:
+  initContainers:
+  - name: init-appdynamics-extensions
+    command: ["sh", "-c", "cp -r /extensions/. /tmp/appd/"]
+    image: sekiya/appdynamics-extensions:latest
+    imagePullPolicy: Always
+    volumeMounts:
+    - mountPath: /tmp/appd
+      name: tmp-appd
+
+  containers:
+  - name: machine-agent-extension
+    image: docker.io/appdynamics/machine-agent-analytics:latest
+    imagePullPolicy: IfNotPresent
+    env:
+    - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          key: appd-key
+          name: appd-secret
+    - name: APPDYNAMICS_MA_PROPERTIES
+      value: '  -Dappdynamics.agent.applicationName=<YOUR_APPLICATION_NAME>
+            -Dappdynamics.agent.tierName=extensions -Dappdynamics.agent.nodeName=extension-node'
+    command: ["/bin/sh"]
+    args: ["-c", "cp -r /tmp/appd/* /opt/appdynamics/monitors/ && cp -fr /tmp/extension-config/extensions/* /opt/appdynamics/monitors/ && ./startup.sh"]
+      
+    envFrom:
+    - configMapRef:
+        name: ma-config
+    resources: {}
+    volumeMounts:
+    - mountPath: /tmp/appd
+      name: tmp-appd
+    - mountPath: /tmp/extension-config
+      name: extension-config
+
+  restartPolicy: Always
+
+  imagePullSecrets:
+    - name: regcred
+
+  volumes:
+    - name: tmp-appd
+      emptyDir: {}
+    - name: extension-config
+      configMap:
+        name: appdynamics-extension-config
+        items:
