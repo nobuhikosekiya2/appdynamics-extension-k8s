@@ -1,4 +1,77 @@
 apiVersion: v1
+data:
+  APPDYNAMICS_AGENT_ACCOUNT_NAME: customer1
+  APPDYNAMICS_AGENT_GLOBAL_ACCOUNT_NAME: ebed97fd-fa0d-41f8-9811-2558b9252555
+  APPDYNAMICS_CONTROLLER_HOST_NAME: saas.appdynamics.com
+  APPDYNAMICS_CONTROLLER_PORT: "443"
+  APPDYNAMICS_CONTROLLER_SSL_ENABLED: "true"
+  EVENT_ENDPOINT: https://analytics.api.appdynamics.com
+  APPDYNAMICS_SIM_ENABLED: "true"
+  APPDYNAMICS_DOCKER_ENABLED: "false"
+  APPDYNAMICS_AGENT_ENABLE_CONTAINERIDASHOSTID: "false" #optional
+  APPDYNAMICS_MACHINE_HIERARCHY_PATH: "" #optional
+  #APPDYNAMICS_AGENT_UNIQUE_HOST_ID: "" #optional
+  APPDYNAMICS_AGENT_PROXY_HOST: "" #optional
+  APPDYNAMICS_AGENT_PROXY_PORT: "" #optional
+  APPDYNAMICS_AGENT_PROXY_USER: "" #optional
+  APPDYNAMICS_AGENT_PROXY_PASS: "" #optional
+  APPDYNAMICS_AGENT_METRIC_LIMIT: "" #optional
+kind: ConfigMap
+metadata:
+  name: ma-config
+  namespace: appdynamics
+
+---
+apiVersion: v1
+data:
+  log4j.xml: |
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <configuration status="Warn" monitorInterval="30">
+
+        <Appenders>
+            <Console name="ConsoleAppender" target="SYSTEM_OUT">
+                <PatternLayout pattern="%d{ABSOLUTE} %5p [%t] %c{1} - %m%n"/>
+            </Console>
+
+            <RollingFile name="FileAppender" fileName="${log4j:configParentLocation}/../../logs/machine-agent.log"
+                         filePattern="${log4j:configParentLocation}/../../logs/machine-agent.log.%i">
+                <PatternLayout>
+                    <Pattern>[%t] %d{DATE} %5p %c{1} - %m%n</Pattern>
+                </PatternLayout>
+                <Policies>
+                    <SizeBasedTriggeringPolicy size="5000 KB"/>
+                </Policies>
+                <DefaultRolloverStrategy max="5"/>
+            </RollingFile>
+        </Appenders>
+
+        <Loggers>
+            <Logger name="com.singularity" level="info" additivity="false">
+                <AppenderRef ref="FileAppender"/>
+                <AppenderRef ref="ConsoleAppender"/>
+            </Logger>
+            <Logger name="com.appdynamics" level="info" additivity="false">
+                <AppenderRef ref="FileAppender"/>
+                <AppenderRef ref="ConsoleAppender"/>
+            </Logger>
+            <Logger name="com.singularity.ee.agent.systemagent.task.sigar.SigarAppAgentMonitor" level="info" additivity="false">
+                <AppenderRef ref="FileAppender"/>
+                <AppenderRef ref="ConsoleAppender"/>
+            </Logger>
+            <Root level="error">
+                <AppenderRef ref="FileAppender"/>
+                <AppenderRef ref="ConsoleAppender"/>
+            </Root>
+        </Loggers>
+
+    </configuration>
+
+kind: ConfigMap
+metadata:
+  name: ma-log-config
+  namespace: appdynamics
+---
+apiVersion: v1
 kind: Pod
 metadata:
   name: machine-agent-extension
@@ -26,6 +99,9 @@ spec:
     - name: APPDYNAMICS_MA_PROPERTIES
       value: '  -Dappdynamics.agent.applicationName=##APPLICATION_NAME##
             -Dappdynamics.agent.tierName=extensions -Dappdynamics.agent.nodeName=extension-node'
+    envFrom:
+    - configMapRef:
+        name: ma-config
     command: ["/bin/sh"]
     args: ["-c", "cp -r /tmp/appd/* /opt/appdynamics/monitors/ && cp -fr /tmp/extension-config/extensions/* /opt/appdynamics/monitors/ && ./startup.sh"]
       
@@ -34,6 +110,9 @@ spec:
         name: ma-config
     resources: {}
     volumeMounts:
+    - name: ma-log-volume
+      mountPath: /opt/appdynamics/conf/logging/log4j.xml
+      subPath: log4j.xml
     - mountPath: /tmp/appd
       name: tmp-appd
     - mountPath: /tmp/extension-config
@@ -45,6 +124,9 @@ spec:
     - name: regcred
 
   volumes:
+    - name: ma-log-volume
+      configMap:
+        name: ma-log-config
     - name: tmp-appd
       emptyDir: {}
     - name: extension-config
