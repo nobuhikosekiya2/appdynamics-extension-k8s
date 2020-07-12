@@ -96,9 +96,6 @@ spec:
         secretKeyRef:
           key: appd-key
           name: appd-secret
-    - name: APPDYNAMICS_MA_PROPERTIES
-      value: '  -Dappdynamics.agent.applicationName=##APPLICATION_NAME##
-            -Dappdynamics.agent.tierName=extensions -Dappdynamics.agent.nodeName=extension-node'
     envFrom:
     - configMapRef:
         name: ma-config
