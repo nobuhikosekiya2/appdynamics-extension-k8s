@@ -117,9 +117,6 @@ spec:
 
   restartPolicy: Always
 
-  imagePullSecrets:
-    - name: regcred
-
   volumes:
     - name: ma-log-volume
       configMap:
