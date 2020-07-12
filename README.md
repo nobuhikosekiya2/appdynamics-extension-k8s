@@ -8,8 +8,9 @@ Tool to easily deploy an AppDynamics extension to K8s
 `./build.sh -t <your registry>/appdynamics/appdymamics-extensions:latest`
 4. A Kubernetes deployment template file is generated as deploy/machine-agent-extension.yaml. Please edit the following before deploying. 
     - Edit the ##TAG## string to the extension docker image you used above.
-    - Edit the ##APPLICATION_NAME## string to the AppDynamics application you would like to register this machine agent to. 
     - Edit the extension configurations.
-5. Deploythe the machine-agent-extension.yaml.
+4. Create secret for controller access key.
+`kubectl -n appdynamics create secret generic appd-secret --from-literal=appd-key="<Your access key>"`
+5. Deploy the machine-agent-extension.yaml.
 `kubectl -f deploy/machine-agent-extension.yaml`
 
