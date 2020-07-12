@@ -7,7 +7,7 @@ spec:
   initContainers:
   - name: init-appdynamics-extensions
     command: ["sh", "-c", "cp -r /extensions/. /tmp/appd/"]
-    image: sekiya/appdynamics-extensions:latest
+    image: ##TAG##
     imagePullPolicy: Always
     volumeMounts:
     - mountPath: /tmp/appd
@@ -24,7 +24,7 @@ spec:
           key: appd-key
           name: appd-secret
     - name: APPDYNAMICS_MA_PROPERTIES
-      value: '  -Dappdynamics.agent.applicationName=<YOUR_APPLICATION_NAME>
+      value: '  -Dappdynamics.agent.applicationName=##APPLICATION_NAME##
             -Dappdynamics.agent.tierName=extensions -Dappdynamics.agent.nodeName=extension-node'
     command: ["/bin/sh"]
     args: ["-c", "cp -r /tmp/appd/* /opt/appdynamics/monitors/ && cp -fr /tmp/extension-config/extensions/* /opt/appdynamics/monitors/ && ./startup.sh"]

@@ -2,6 +2,17 @@
 
 BASEDIR=`dirname $0`
 
+while getopts t: OPT
+do
+  case $OPT in
+    "t" ) TAG="$OPTARG" ;;
+  esac
+done
+
+if [ "$TAG" == "" ]; then
+  TAG=appdynamics-extensions:latest
+fi
+
 if [ `ls $BASEDIR/extensions | wc -l` -eq 0 ]; then
   echo "Please place extension zip files under $BASEDIR/extensions."
   echo "exiting error 1."
@@ -9,7 +20,7 @@ if [ `ls $BASEDIR/extensions | wc -l` -eq 0 ]; then
 fi
 
 
-# 1. Create extension docker image
+# 1. Build extension docker image
 rm -fr $BASEDIR/docker/extensions
 
 for extension_zipfile in `ls $BASEDIR/extensions`
@@ -17,10 +28,11 @@ do
   unzip $BASEDIR/extensions/$extension_zipfile -d $BASEDIR/docker/extensions
 done
 
-docker build $BASEDIR/docker -t appdynamics-extensions:latest
+docker build $BASEDIR/docker -t $TAG
 
 
-# 2. create Kubernetes deployment spce yaml
+# 2. Generate Kubernetes deployment spec yaml
+
 configmap_def=""
 volume_mount_def=""
 
