@@ -13,5 +13,11 @@ Tool to easily deploy an AppDynamics extension to K8s
 4. Create secret for controller access key.
 `kubectl -n appdynamics create secret generic appd-secret --from-literal=appd-key="<Your access key>"`
 5. Deploy the machine-agent-extension.yaml.
-`kubectl -f deploy/machine-agent-extension.yaml`
+`kubectl create -f deploy/machine-agent-extension.yaml`
 
+## When modifying extension configurations after deploy
+1. Edit the deploy/machine-agent-extension.yaml.
+2. Delete the current deployment.
+`kubectl delete -f deploy/machine-agent-extension.yaml`
+3. Re-create the deployment.
+`kubectl create -f deploy/machine-agent-extension.yaml`
