@@ -44,8 +44,11 @@ do
           path: extensions/${extension_dir}/config.yml"
 done
 
-cp $BASEDIR/deploy/machine-agent-extension-base.yaml $BASEDIR/deploy/machine-agent-extension.yaml
-echo "$volume_mount_def" >> $BASEDIR/deploy/machine-agent-extension.yaml
-echo "---" >> $BASEDIR/deploy/machine-agent-extension.yaml
-kubectl create configmap -n appdynamics --dry-run=client appdynamics-extension-config $configmap_def --output yaml >>  $BASEDIR/deploy/machine-agent-extension.yaml
+sed -e "s~##TAG##~$TAG~" $BASEDIR/template/ma-extension-base.yaml > $BASEDIR/deploy/ma-extension.yaml
+echo "$volume_mount_def" >> $BASEDIR/deploy/ma-extension.yaml
+
+if [ -f $BASEDIR/deploy/ma-extension-config.yaml ]; then
+  cp -a $BASEDIR/deploy/ma-extension-config.yaml $BASEDIR/deploy/ma-extension-config.yaml.`date  "+%Y%m%d-%H%M%S"`
+fi
+kubectl create configmap -n appdynamics --dry-run=client ma-extension-config $configmap_def --output yaml > $BASEDIR/deploy/ma-extension-config.yaml
 
