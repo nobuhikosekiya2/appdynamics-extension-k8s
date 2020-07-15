@@ -50,5 +50,8 @@ echo "$volume_mount_def" >> $BASEDIR/deploy/ma-extension.yaml
 if [ -f $BASEDIR/deploy/ma-extension-config.yaml ]; then
   cp -a $BASEDIR/deploy/ma-extension-config.yaml $BASEDIR/deploy/ma-extension-config.yaml.`date  "+%Y%m%d-%H%M%S"`
 fi
+
 kubectl create configmap -n appdynamics --dry-run=client ma-extension-config $configmap_def --output yaml > $BASEDIR/deploy/ma-extension-config.yaml
 
+# If you are using old kubectl version, the --dry-run=client option may not be supported and get an error. Please use below instead.
+# kubectl create configmap -n appdynamics --dry-run ma-extension-config $configmap_def --output yaml > $BASEDIR/deploy/ma-extension-config.yaml
