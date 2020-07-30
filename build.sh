@@ -40,8 +40,8 @@ for extension_dir in `ls $BASEDIR/docker/extensions`
 do
   configmap_def="$configmap_def --from-file=${extension_dir}-config.yml=$BASEDIR/docker/extensions/$extension_dir/config.yml"
   volume_mount_def="$volume_mount_def
-        - key: ${extension_dir}-config.yml
-          path: extensions/${extension_dir}/config.yml"
+            - key: ${extension_dir}-config.yml
+              path: extensions/${extension_dir}/config.yml"
 done
 
 sed -e "s~##TAG##~$TAG~" $BASEDIR/template/ma-extension-base.yaml > $BASEDIR/deploy/ma-extension.yaml
